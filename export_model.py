@@ -9,7 +9,7 @@ CSV_PATH = "quotryx_combined_20260225_040559.csv"
 
 NUMERIC_FEATURES = [
     "bedrooms", "bathrooms", "size_interior_sqft",
-    "lot_size_sqft", "year_built", "parking_spaces",
+    "lot_size_percentile", "year_built", "parking_spaces",
 ]
 BINARY_FEATURES = [
     "is_house", "is_condo", "has_garage",
@@ -48,6 +48,7 @@ def parse_lot_size(val):
 df = pd.read_csv(CSV_PATH)
 df["size_interior_sqft"] = df["size_interior"].apply(parse_size_interior)
 df["lot_size_sqft"] = df["lot_size"].apply(parse_lot_size)
+df["lot_size_percentile"] = df["lot_size_sqft"].rank(pct=True) * 100
 df["is_house"] = (df["building_type"] == "House").astype(int)
 df["is_condo"] = df["ownership_type"].fillna("").str.contains("Condominium", case=False).astype(int)
 df["has_garage"] = df["parking_type"].fillna("").str.contains("Garage", case=False).astype(int)
@@ -77,7 +78,7 @@ df = df.loc[y.index]
 X_home = df[HOME_FEATURES].values
 X_city = df[CITY_DUMMIES].values
 
-poly = PolynomialFeatures(degree=2, include_bias=False)
+poly = PolynomialFeatures(degree=1, include_bias=False)
 X_poly = poly.fit_transform(X_home)
 X_full = np.hstack([X_poly, X_city])
 
@@ -99,7 +100,6 @@ export = {
     "city_averages": city_averages,
     "r_squared": round(float(ols_result.rsquared), 4),
     "adj_r_squared": round(float(ols_result.rsquared_adj), 4),
-    "rmse": float(np.sqrt(ols_result.mse_resid)),
     "n_listings": int(len(y)),
 }
 

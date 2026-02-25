@@ -13,7 +13,7 @@ CSV_PATH = os.path.join(os.path.dirname(__file__), "quotryx_combined_20260225_04
 
 NUMERIC_FEATURES = [
     "bedrooms", "bathrooms", "size_interior_sqft",
-    "lot_size_sqft", "year_built", "parking_spaces",
+    "lot_size_percentile", "year_built", "parking_spaces",
 ]
 BINARY_FEATURES = [
     "is_house", "is_condo", "has_garage",
@@ -53,6 +53,7 @@ def preprocess(df):
     df = df.copy()
     df["size_interior_sqft"] = df["size_interior"].apply(parse_size_interior)
     df["lot_size_sqft"] = df["lot_size"].apply(parse_lot_size)
+    df["lot_size_percentile"] = df["lot_size_sqft"].rank(pct=True) * 100
 
     df["is_house"] = (df["building_type"] == "House").astype(int)
     df["is_condo"] = df["ownership_type"].fillna("").str.contains("Condominium", case=False).astype(int)
@@ -90,7 +91,7 @@ def train_model():
     X_home = df[HOME_FEATURES].values
     X_city = df[CITY_DUMMIES].values
 
-    poly = PolynomialFeatures(degree=2, include_bias=False)
+    poly = PolynomialFeatures(degree=1, include_bias=False)
     X_poly = poly.fit_transform(X_home)
     X_full = np.hstack([X_poly, X_city])
 
@@ -105,7 +106,6 @@ def train_model():
     ols_result = sm.OLS(y, X_sm).fit()
     r_squared = ols_result.rsquared
     adj_r_squared = ols_result.rsquared_adj
-    rmse = np.sqrt(ols_result.mse_resid)
 
     poly_names = poly.get_feature_names_out(HOME_FEATURES).tolist()
     all_feature_names = poly_names + CITY_DUMMIES
@@ -117,7 +117,6 @@ def train_model():
         "all_feature_names": all_feature_names,
         "r_squared": r_squared,
         "adj_r_squared": adj_r_squared,
-        "rmse": rmse,
         "city_averages": city_averages,
         "n_listings": len(y),
     }
@@ -166,22 +165,11 @@ def predict():
                   [binary_values[f] for f in BINARY_FEATURES]
     home_array = np.array(home_vector).reshape(1, -1)
 
-    percentile_raw = request.form.get("percentile", "50")
-    try:
-        percentile = float(percentile_raw)
-        if percentile < 1 or percentile > 99:
-            percentile = 50.0
-    except ValueError:
-        percentile = 50.0
-    form_data["percentile"] = str(int(percentile)) if percentile.is_integer() else str(percentile)
-
     X_poly = trained["poly"].transform(home_array)
     city_vector = [1 if city == "Saskatoon" else 0, 1 if city == "Regina" else 0]
     X_full = np.hstack([X_poly, np.array(city_vector).reshape(1, -1)])
 
-    pred_mean = trained["model"].predict(X_full)[0]
-    z = norm.ppf(percentile / 100.0)
-    pred = pred_mean + z * trained["rmse"]
+    pred = trained["model"].predict(X_full)[0]
     pred = max(pred, 0)
 
     return render_template(
