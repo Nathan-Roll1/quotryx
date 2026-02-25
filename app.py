@@ -5,6 +5,7 @@ from flask import Flask, render_template, request
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 import statsmodels.api as sm
+from scipy.stats import norm
 
 app = Flask(__name__)
 
@@ -104,6 +105,7 @@ def train_model():
     ols_result = sm.OLS(y, X_sm).fit()
     r_squared = ols_result.rsquared
     adj_r_squared = ols_result.rsquared_adj
+    rmse = np.sqrt(ols_result.mse_resid)
 
     poly_names = poly.get_feature_names_out(HOME_FEATURES).tolist()
     all_feature_names = poly_names + CITY_DUMMIES
@@ -115,6 +117,7 @@ def train_model():
         "all_feature_names": all_feature_names,
         "r_squared": r_squared,
         "adj_r_squared": adj_r_squared,
+        "rmse": rmse,
         "city_averages": city_averages,
         "n_listings": len(y),
     }
@@ -163,11 +166,22 @@ def predict():
                   [binary_values[f] for f in BINARY_FEATURES]
     home_array = np.array(home_vector).reshape(1, -1)
 
+    percentile_raw = request.form.get("percentile", "50")
+    try:
+        percentile = float(percentile_raw)
+        if percentile < 1 or percentile > 99:
+            percentile = 50.0
+    except ValueError:
+        percentile = 50.0
+    form_data["percentile"] = str(int(percentile)) if percentile.is_integer() else str(percentile)
+
     X_poly = trained["poly"].transform(home_array)
     city_vector = [1 if city == "Saskatoon" else 0, 1 if city == "Regina" else 0]
     X_full = np.hstack([X_poly, np.array(city_vector).reshape(1, -1)])
 
-    pred = trained["model"].predict(X_full)[0]
+    pred_mean = trained["model"].predict(X_full)[0]
+    z = norm.ppf(percentile / 100.0)
+    pred = pred_mean + z * trained["rmse"]
     pred = max(pred, 0)
 
     return render_template(

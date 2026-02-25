@@ -99,6 +99,7 @@ export = {
     "city_averages": city_averages,
     "r_squared": round(float(ols_result.rsquared), 4),
     "adj_r_squared": round(float(ols_result.rsquared_adj), 4),
+    "rmse": float(np.sqrt(ols_result.mse_resid)),
     "n_listings": int(len(y)),
 }
 
