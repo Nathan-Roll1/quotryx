@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quotryx</title>
+  <title>quotryx</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -26,7 +26,7 @@
     input[type="radio"]:checked + label { background: #111; color: #fff; }
   </style>
 </head>
-<body class="bg-stone-50 text-neutral-900 font-sans antialiased min-h-screen">
+<body class="bg-stone-50 text-neutral-900 font-sans antialiased min-h-screen lowercase">
 
   <div class="max-w-xl mx-auto px-5 py-8">
 
@@ -35,7 +35,7 @@
         <svg class="w-5 h-5 text-neutral-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
           <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
         </svg>
-        <h1 class="text-lg font-semibold tracking-tight">Quotryx</h1>
+        <h1 class="text-lg font-semibold tracking-tight">quotryx</h1>
       </div>
       <span class="text-xs text-neutral-400 font-mono tabular-nums">
         R²={{ "%.3f"|format(r_squared) }}&ensp;adj={{ "%.3f"|format(adj_r_squared) }}&ensp;n={{ n_listings }}
@@ -46,7 +46,7 @@
     {% set city_avg = city_averages.get(form_data.get('city', ''), 0) %}
     {% set delta = prediction - city_avg %}
     <div class="mb-8">
-      <div class="text-xs text-neutral-400 uppercase tracking-widest mb-1">Estimate</div>
+      <div class="text-xs text-neutral-400 tracking-widest mb-1">estimate</div>
       <div class="text-4xl font-semibold font-mono tabular-nums tracking-tight">${{ "{:,.0f}".format(prediction) }}</div>
       {% if city_avg %}
       <div class="mt-1.5 text-sm text-neutral-500 font-mono tabular-nums">
@@ -120,7 +120,7 @@
 
       <button type="submit"
               class="w-full bg-neutral-900 text-white text-sm font-medium py-2 rounded hover:bg-neutral-800 transition-colors">
-        Estimate
+        estimate
       </button>
 
     </form>
