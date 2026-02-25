@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quotryx Fair Value Estimator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-start py-10 px-4">
+
+  <div class="w-full max-w-2xl">
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold tracking-tight text-white">Quotryx Fair Value Estimator</h1>
+      <p class="mt-2 text-sm text-slate-400">Degree 2 OLS regression model trained on Saskatchewan MLS listings</p>
+      <div class="mt-3 flex items-center justify-center gap-3">
+        <span class="inline-flex items-center rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-xs font-medium text-slate-300">
+          R² = {{ "%.4f"|format(r_squared) }}
+        </span>
+        <span class="inline-flex items-center rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-xs font-medium text-slate-300">
+          Adj R² = {{ "%.4f"|format(adj_r_squared) }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Prediction Result -->
+    {% if prediction is not none %}
+    <div class="mb-8 rounded-xl border border-emerald-800 bg-emerald-950/50 p-6 text-center">
+      <p class="text-sm font-medium text-emerald-400 uppercase tracking-wide">Predicted Fair Value</p>
+      <p class="mt-2 text-4xl font-bold text-emerald-300">${{ "{:,.0f}".format(prediction) }}</p>
+      {% if form_data and form_data.get('city') and city_averages and form_data.get('city') in city_averages %}
+      <p class="mt-3 text-sm text-slate-400">
+        Average in {{ form_data.get('city') }}: ${{ "{:,.0f}".format(city_averages[form_data.get('city')]) }}
+      </p>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Form -->
+    <form method="POST" action="/predict" class="rounded-xl border border-slate-800 bg-slate-800/50 p-6 space-y-6">
+
+      <!-- Municipality -->
+      <div>
+        <label for="city" class="block text-sm font-medium text-slate-300 mb-1.5">Municipality</label>
+        <select name="city" id="city"
+                class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none">
+          {% for c in ['Saskatoon', 'Regina', 'Prince Albert'] %}
+          <option value="{{ c }}" {{ 'selected' if form_data and form_data.get('city') == c else '' }}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Numeric Inputs — 2-col grid on md+ -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% set numeric_fields = [
+          ('bedrooms', 'Bedrooms'),
+          ('bathrooms', 'Bathrooms'),
+          ('size_interior_sqft', 'Interior Size (sqft)'),
+          ('lot_size_sqft', 'Lot Size (sqft)'),
+          ('year_built', 'Year Built'),
+          ('parking_spaces', 'Parking Spaces')
+        ] %}
+        {% for field_name, label in numeric_fields %}
+        <div>
+          <label for="{{ field_name }}" class="block text-sm font-medium text-slate-300 mb-1.5">{{ label }}</label>
+          <input type="number" name="{{ field_name }}" id="{{ field_name }}" step="1"
+                 value="{{ form_data.get(field_name, '') if form_data else '' }}"
+                 placeholder="avg: {{ feature_means.get(field_name, '')|round(0)|int }}"
+                 class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none">
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Binary Toggles -->
+      <div>
+        <p class="text-sm font-medium text-slate-300 mb-3">Property Features</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {% set toggle_fields = [
+            ('is_house', 'Is House'),
+            ('is_condo', 'Is Condo'),
+            ('has_garage', 'Has Garage'),
+            ('has_basement', 'Has Basement'),
+            ('basement_finished', 'Basement Finished'),
+            ('has_cooling', 'Has Cooling')
+          ] %}
+          {% for field_name, label in toggle_fields %}
+          <label class="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 cursor-pointer hover:border-slate-600 transition-colors">
+            <span class="text-sm text-slate-300">{{ label }}</span>
+            <div class="relative inline-flex items-center">
+              <input type="checkbox" name="{{ field_name }}" value="1"
+                     class="sr-only peer"
+                     {{ 'checked' if form_data and form_data.get(field_name) else '' }}>
+              <div class="w-11 h-6 rounded-full border-2 border-slate-600 bg-slate-700 peer-checked:bg-emerald-950 peer-checked:border-emerald-500 transition-colors pointer-events-none"></div>
+              <div class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-slate-400 peer-checked:bg-emerald-400 peer-checked:translate-x-5 transition-all pointer-events-none"></div>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit"
+              class="w-full rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-900 transition-colors">
+        Predict Fair Value
+      </button>
+    </form>
+
+    <!-- Footer -->
+    <div class="mt-6 text-center text-xs text-slate-500 space-y-1">
+      <p>Model trained on {{ "{:,}".format(n_listings) }} listings</p>
+      <p>Blank fields are filled with training data means</p>
+    </div>
+
+  </div>
+
+</body>
+</html>
