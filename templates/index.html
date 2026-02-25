@@ -73,20 +73,21 @@
       <fieldset class="mb-5">
         <div class="grid grid-cols-3 gap-3">
           {% set fields = [
-            ('bedrooms', 'Beds'),
-            ('bathrooms', 'Baths'),
-            ('size_interior_sqft', 'Sqft'),
-            ('lot_size_sqft', 'Lot sqft'),
-            ('year_built', 'Year'),
-            ('parking_spaces', 'Parking')
+            ('bedrooms', 'Beds', 0, 6),
+            ('bathrooms', 'Baths', 0, 6),
+            ('size_interior_sqft', 'Sqft', 100, 5000),
+            ('lot_size_sqft', 'Lot sqft', 0, 15000),
+            ('year_built', 'Year', 1850, 2026),
+            ('parking_spaces', 'Parking', 0, 3)
           ] %}
-          {% for name, label in fields %}
+          {% for name, label, min_val, max_val in fields %}
           <div>
             <label for="{{ name }}" class="block text-xs text-neutral-400 mb-1">{{ label }}</label>
             <input type="number" name="{{ name }}" id="{{ name }}" step="any"
                    value="{{ form_data.get(name, '') if form_data else '' }}"
                    placeholder="{{ feature_means.get(name, 0)|round(0)|int }}"
-                   {{ 'max="2026"' if name == 'year_built' else '' }}
+                   min="{{ min_val }}" max="{{ max_val }}"
+                   oninput="if(this.max && parseFloat(this.value) > parseFloat(this.max)) this.value = this.max;"
                    class="w-full border border-neutral-300 bg-white rounded px-2.5 py-1.5 text-sm font-mono tabular-nums placeholder:text-neutral-300 focus:outline-none focus:border-neutral-900 transition-colors">
           </div>
           {% endfor %}

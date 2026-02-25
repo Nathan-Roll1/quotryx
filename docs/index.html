@@ -103,13 +103,15 @@ function init() {
     const ph = Math.round(M.feature_means[name]);
     let extra = '';
     if (name === 'year_built') extra = 'min="1850" max="2026"';
-    else if (name === 'bedrooms' || name === 'bathrooms' || name === 'parking_spaces') extra = 'min="0" max="20"';
-    else if (name === 'size_interior_sqft') extra = 'min="100" max="20000"';
-    else if (name === 'lot_size_sqft') extra = 'min="0" max="100000000"';
+    else if (name === 'bedrooms' || name === 'bathrooms') extra = 'min="0" max="6"';
+    else if (name === 'parking_spaces') extra = 'min="0" max="3"';
+    else if (name === 'size_interior_sqft') extra = 'min="100" max="5000"';
+    else if (name === 'lot_size_sqft') extra = 'min="0" max="15000"';
     numGrid.innerHTML += `
       <div>
         <label for="${name}" class="block text-xs text-neutral-400 mb-1">${label}</label>
         <input type="number" id="${name}" step="any" placeholder="${ph}" ${extra}
+               oninput="if(this.max && parseFloat(this.value) > parseFloat(this.max)) this.value = this.max;"
                class="w-full border border-neutral-300 bg-white rounded px-2.5 py-1.5 text-sm font-mono tabular-nums placeholder:text-neutral-300 focus:outline-none focus:border-neutral-900 transition-colors">
       </div>`;
   }
