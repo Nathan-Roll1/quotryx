@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quotryx</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
+    input[type="radio"]:checked + label { background: #111; color: #fff; }
+  </style>
+</head>
+<body class="bg-stone-50 text-neutral-900 font-sans antialiased min-h-screen">
+
+  <div class="max-w-xl mx-auto px-5 py-8">
+
+    <header class="flex items-baseline justify-between mb-8 border-b border-neutral-200 pb-4">
+      <h1 class="text-lg font-semibold tracking-tight">Quotryx</h1>
+      <span id="stats" class="text-xs text-neutral-400 font-mono tabular-nums"></span>
+    </header>
+
+    <div id="result" class="mb-8 hidden">
+      <div class="text-xs text-neutral-400 uppercase tracking-widest mb-1">Estimate</div>
+      <div id="price" class="text-4xl font-semibold font-mono tabular-nums tracking-tight"></div>
+      <div id="context" class="mt-1.5 text-sm text-neutral-500 font-mono tabular-nums"></div>
+    </div>
+
+    <div>
+
+      <fieldset class="mb-6">
+        <div class="flex rounded border border-neutral-300 overflow-hidden text-sm" role="radiogroup">
+          <input type="radio" name="city" value="Saskatoon" id="city_1" class="sr-only peer" checked>
+          <label for="city_1" class="flex-1 text-center py-2 cursor-pointer transition-colors bg-white text-neutral-600 hover:bg-neutral-50 border-r border-neutral-300 font-medium select-none">Saskatoon</label>
+          <input type="radio" name="city" value="Regina" id="city_2" class="sr-only peer">
+          <label for="city_2" class="flex-1 text-center py-2 cursor-pointer transition-colors bg-white text-neutral-600 hover:bg-neutral-50 border-r border-neutral-300 font-medium select-none">Regina</label>
+          <input type="radio" name="city" value="Prince Albert" id="city_3" class="sr-only peer">
+          <label for="city_3" class="flex-1 text-center py-2 cursor-pointer transition-colors bg-white text-neutral-600 hover:bg-neutral-50 font-medium select-none">Prince Albert</label>
+        </div>
+      </fieldset>
+
+      <fieldset class="mb-5">
+        <div class="grid grid-cols-3 gap-3" id="numeric-fields"></div>
+      </fieldset>
+
+      <fieldset class="mb-6">
+        <div class="grid grid-cols-3 gap-y-2 gap-x-4" id="flag-fields"></div>
+      </fieldset>
+
+    </div>
+
+    <footer class="mt-6 text-[11px] text-neutral-300 text-right">
+      degree-2 OLS &middot; blank = mean
+    </footer>
+
+  </div>
+
+<script>
+const M = {"intercept":-1750588.625055099,"coefficients":[0.002342108021941834,0.01521981969836102,-2.6705809148428044,6.702755638266878,0.01603011645359881,-0.0073068006614049885,-0.012092216830593236,0.011882790266546962,-0.031231806490466807,0.05799279524666892,0.04846287986175757,-0.06714076046400735,-0.18925468675544077,0.012310967542893986,-30.452726187840174,0.16219598975580174,12.210148754257412,-0.1299066127949704,-0.03043538495578879,0.07327567878147079,0.060676660202766186,0.009627882818271871,-0.0441043646267083,0.11968510251200826,0.010384436624548243,-6.257238981337224,-0.041353081134815284,36.23464041692622,-0.20237949420815404,-0.01785561885738307,0.06745854536985973,0.15648145314231954,-0.07920544673381968,-0.1377075570420616,0.21580797382916556,0.031628802149356705,-0.0009298793708580888,0.10061186856628312,35.409148384291385,6.020185273888508,22.22185258036724,84.8743216476472,-63.37746991878451,-100.66339013682872,137.35251953379486,2.1640112386062116e-08,-0.00288894566193143,0.08334715431861384,0.8450032493962767,-0.6050794798641153,0.5895494554695226,-1.2532665850432658,-0.8383728316964572,0.6481956998528325,0.41230115860809236,-16.758228387404003,-25.378032327364537,24.842687188045076,-56.74301765682495,111.8636412200119,91.69921920803834,-124.45775233032262,-93.05657840304379,0.11253442054148866,-0.13586965267029055,0.12363675127671406,0.10592626885808383,0.06177425599006717,0.5999679167899135,-0.012092216825861604,0.002186794813134142,-0.04697932889654557,-0.0013124144311248516,0.0020214670792319204,-0.01761797436290824,0.01188279027322781,0.008847559429756312,0.04373535853981857,0.035930391550651364,-0.05546569399488874,-0.03123180647186294,-0.04568961869773987,-0.04680692680965954,0.03293277557568334,0.05799279524366045,0.04846287986607094,-0.0009544598822832399,0.04846287986607094,0.004026363197982111,-0.06714076046693333,0.0025814787945414447,-0.0311978274254548],"powers":[[1,0,0,0,0,0,0,0,0,0,0,0],[0,1,0,0,0,0,0,0,0,0,0,0],[0,0,1,0,0,0,0,0,0,0,0,0],[0,0,0,1,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,0],[0,0,0,0,0,1,0,0,0,0,0,0],[0,0,0,0,0,0,1,0,0,0,0,0],[0,0,0,0,0,0,0,1,0,0,0,0],[0,0,0,0,0,0,0,0,1,0,0,0],[0,0,0,0,0,0,0,0,0,1,0,0],[0,0,0,0,0,0,0,0,0,0,1,0],[0,0,0,0,0,0,0,0,0,0,0,1],[2,0,0,0,0,0,0,0,0,0,0,0],[1,1,0,0,0,0,0,0,0,0,0,0],[1,0,1,0,0,0,0,0,0,0,0,0],[1,0,0,1,0,0,0,0,0,0,0,0],[1,0,0,0,1,0,0,0,0,0,0,0],[1,0,0,0,0,1,0,0,0,0,0,0],[1,0,0,0,0,0,1,0,0,0,0,0],[1,0,0,0,0,0,0,1,0,0,0,0],[1,0,0,0,0,0,0,0,1,0,0,0],[1,0,0,0,0,0,0,0,0,1,0,0],[1,0,0,0,0,0,0,0,0,0,1,0],[1,0,0,0,0,0,0,0,0,0,0,1],[0,2,0,0,0,0,0,0,0,0,0,0],[0,1,1,0,0,0,0,0,0,0,0,0],[0,1,0,1,0,0,0,0,0,0,0,0],[0,1,0,0,1,0,0,0,0,0,0,0],[0,1,0,0,0,1,0,0,0,0,0,0],[0,1,0,0,0,0,1,0,0,0,0,0],[0,1,0,0,0,0,0,1,0,0,0,0],[0,1,0,0,0,0,0,0,1,0,0,0],[0,1,0,0,0,0,0,0,0,1,0,0],[0,1,0,0,0,0,0,0,0,0,1,0],[0,1,0,0,0,0,0,0,0,0,0,1],[0,0,2,0,0,0,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0,0,0,0],[0,0,1,0,1,0,0,0,0,0,0,0],[0,0,1,0,0,1,0,0,0,0,0,0],[0,0,1,0,0,0,1,0,0,0,0,0],[0,0,1,0,0,0,0,1,0,0,0,0],[0,0,1,0,0,0,0,0,1,0,0,0],[0,0,1,0,0,0,0,0,0,1,0,0],[0,0,1,0,0,0,0,0,0,0,1,0],[0,0,1,0,0,0,0,0,0,0,0,1],[0,0,0,2,0,0,0,0,0,0,0,0],[0,0,0,1,1,0,0,0,0,0,0,0],[0,0,0,1,0,1,0,0,0,0,0,0],[0,0,0,1,0,0,1,0,0,0,0,0],[0,0,0,1,0,0,0,1,0,0,0,0],[0,0,0,1,0,0,0,0,1,0,0,0],[0,0,0,1,0,0,0,0,0,1,0,0],[0,0,0,1,0,0,0,0,0,0,1,0],[0,0,0,1,0,0,0,0,0,0,0,1],[0,0,0,0,2,0,0,0,0,0,0,0],[0,0,0,0,1,1,0,0,0,0,0,0],[0,0,0,0,1,0,1,0,0,0,0,0],[0,0,0,0,1,0,0,1,0,0,0,0],[0,0,0,0,1,0,0,0,1,0,0,0],[0,0,0,0,1,0,0,0,0,1,0,0],[0,0,0,0,1,0,0,0,0,0,1,0],[0,0,0,0,1,0,0,0,0,0,0,1],[0,0,0,0,0,2,0,0,0,0,0,0],[0,0,0,0,0,1,1,0,0,0,0,0],[0,0,0,0,0,1,0,1,0,0,0,0],[0,0,0,0,0,1,0,0,1,0,0,0],[0,0,0,0,0,1,0,0,0,1,0,0],[0,0,0,0,0,1,0,0,0,0,1,0],[0,0,0,0,0,1,0,0,0,0,0,1],[0,0,0,0,0,0,2,0,0,0,0,0],[0,0,0,0,0,0,1,1,0,0,0,0],[0,0,0,0,0,0,1,0,1,0,0,0],[0,0,0,0,0,0,1,0,0,1,0,0],[0,0,0,0,0,0,1,0,0,0,1,0],[0,0,0,0,0,0,1,0,0,0,0,1],[0,0,0,0,0,0,0,2,0,0,0,0],[0,0,0,0,0,0,0,1,1,0,0,0],[0,0,0,0,0,0,0,1,0,1,0,0],[0,0,0,0,0,0,0,1,0,0,1,0],[0,0,0,0,0,0,0,1,0,0,0,1],[0,0,0,0,0,0,0,0,2,0,0,0],[0,0,0,0,0,0,0,0,1,1,0,0],[0,0,0,0,0,0,0,0,1,0,1,0],[0,0,0,0,0,0,0,0,1,0,0,1],[0,0,0,0,0,0,0,0,0,2,0,0],[0,0,0,0,0,0,0,0,0,1,1,0],[0,0,0,0,0,0,0,0,0,1,0,1],[0,0,0,0,0,0,0,0,0,0,2,0],[0,0,0,0,0,0,0,0,0,0,1,1],[0,0,0,0,0,0,0,0,0,0,0,2]],"feature_means":{"bedrooms":3.216403162055336,"bathrooms":2.345739471106758,"size_interior_sqft":1305.6327130264447,"lot_size_sqft":272913.9392027972,"year_built":1987.0255362614914,"parking_spaces":3.339034205231388},"city_averages":{"Prince Albert":316347.1712328767,"Regina":398114.23856858845,"Saskatoon":570480.9363817098},"r_squared":0.6927,"adj_r_squared":0.6827,"n_listings":1152};
+
+const NUMERIC = [
+  ['bedrooms',           'Beds'],
+  ['bathrooms',          'Baths'],
+  ['size_interior_sqft', 'Sqft'],
+  ['lot_size_sqft',      'Lot sqft'],
+  ['year_built',         'Year'],
+  ['parking_spaces',     'Parking'],
+];
+
+const FLAGS = [
+  ['is_house',           'House'],
+  ['is_condo',           'Condo'],
+  ['has_garage',         'Garage'],
+  ['has_basement',       'Basement'],
+  ['basement_finished',  'Fin. bsmt'],
+  ['has_cooling',        'Cooling'],
+];
+
+function init() {
+  document.getElementById('stats').textContent =
+    `R\u00B2=${M.r_squared.toFixed(3)}  adj=${M.adj_r_squared.toFixed(3)}  n=${M.n_listings}`;
+
+  const numGrid = document.getElementById('numeric-fields');
+  for (const [name, label] of NUMERIC) {
+    const ph = Math.round(M.feature_means[name]);
+    numGrid.innerHTML += `
+      <div>
+        <label for="${name}" class="block text-xs text-neutral-400 mb-1">${label}</label>
+        <input type="number" id="${name}" step="any" placeholder="${ph}"
+               class="w-full border border-neutral-300 bg-white rounded px-2.5 py-1.5 text-sm font-mono tabular-nums placeholder:text-neutral-300 focus:outline-none focus:border-neutral-900 transition-colors">
+      </div>`;
+  }
+
+  const flagGrid = document.getElementById('flag-fields');
+  for (const [name, label] of FLAGS) {
+    flagGrid.innerHTML += `
+      <label class="flex items-center gap-1.5 cursor-pointer select-none">
+        <input type="checkbox" id="${name}" class="accent-neutral-900 w-3.5 h-3.5">
+        <span class="text-sm text-neutral-600">${label}</span>
+      </label>`;
+  }
+
+  document.querySelectorAll('input').forEach(el => el.addEventListener('input', predict));
+  document.querySelectorAll('input[name="city"]').forEach(el => el.addEventListener('change', predict));
+}
+
+function predict() {
+  const nums = NUMERIC.map(([name]) => {
+    const v = document.getElementById(name).value;
+    return v === '' ? M.feature_means[name] : parseFloat(v);
+  });
+  const flags = FLAGS.map(([name]) => document.getElementById(name).checked ? 1 : 0);
+  const base = nums.concat(flags);
+
+  const poly = M.powers.map(row => {
+    let term = 1;
+    for (let j = 0; j < row.length; j++) {
+      if (row[j] === 1) term *= base[j];
+      else if (row[j] === 2) term *= base[j] * base[j];
+    }
+    return term;
+  });
+
+  const city = document.querySelector('input[name="city"]:checked').value;
+  const cityVec = [city === 'Saskatoon' ? 1 : 0, city === 'Regina' ? 1 : 0];
+  const features = poly.concat(cityVec);
+
+  let p = M.intercept;
+  for (let i = 0; i < features.length; i++) p += M.coefficients[i] * features[i];
+  p = Math.max(p, 0);
+
+  const fmt = n => n.toLocaleString('en-CA', { maximumFractionDigits: 0 });
+  const avg = M.city_averages[city];
+  const delta = p - avg;
+  const sign = delta >= 0 ? '+' : '';
+  const color = delta >= 0 ? 'text-emerald-600' : 'text-red-500';
+
+  document.getElementById('price').textContent = '$' + fmt(p);
+  document.getElementById('context').innerHTML =
+    `${city} avg $${fmt(avg)}&ensp;/&ensp;<span class="${color}">${sign}${fmt(delta)}</span>`;
+  document.getElementById('result').classList.remove('hidden');
+}
+
+init();
+predict();
+</script>
+
+</body>
+</html>
