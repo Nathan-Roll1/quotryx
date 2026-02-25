@@ -83,7 +83,10 @@ def train_model():
         df[col] = df[col].fillna(0).astype(int)
 
     feature_medians = df[NUMERIC_FEATURES].median().to_dict()
+    feature_medians["lot_size_sqft"] = float(df["lot_size_sqft"].median())
     df[NUMERIC_FEATURES] = df[NUMERIC_FEATURES].fillna(df[NUMERIC_FEATURES].median())
+
+    lot_sqfts_sorted = df["lot_size_sqft"].dropna().sort_values().tolist()
 
     y = df["price_numeric"].dropna()
     df = df.loc[y.index]
@@ -114,6 +117,7 @@ def train_model():
         "model": model,
         "poly": poly,
         "feature_means": feature_medians,
+        "lot_sqfts_sorted": lot_sqfts_sorted,
         "all_feature_names": all_feature_names,
         "r_squared": r_squared,
         "adj_r_squared": adj_r_squared,
@@ -148,12 +152,24 @@ def predict():
 
     numeric_values = {}
     for feat in NUMERIC_FEATURES:
-        raw = request.form.get(feat, "")
-        form_data[feat] = raw
-        if raw.strip() == "":
-            numeric_values[feat] = trained["feature_means"].get(feat, 0)
+        if feat == "lot_size_percentile":
+            raw = request.form.get("lot_size_sqft", "")
+            form_data["lot_size_sqft"] = raw
+            if raw.strip() == "":
+                sqft_val = trained["feature_means"].get("lot_size_sqft", 0)
+            else:
+                sqft_val = float(raw)
+            arr = trained["lot_sqfts_sorted"]
+            idx = np.searchsorted(arr, sqft_val)
+            pct = (idx / len(arr)) * 100 if len(arr) > 0 else 50.0
+            numeric_values[feat] = pct
         else:
-            numeric_values[feat] = float(raw)
+            raw = request.form.get(feat, "")
+            form_data[feat] = raw
+            if raw.strip() == "":
+                numeric_values[feat] = trained["feature_means"].get(feat, 0)
+            else:
+                numeric_values[feat] = float(raw)
 
     binary_values = {}
     for feat in BINARY_FEATURES:

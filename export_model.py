@@ -70,7 +70,10 @@ for col in BINARY_FEATURES:
     df[col] = df[col].fillna(0).astype(int)
 
 feature_medians = df[NUMERIC_FEATURES].median().to_dict()
+feature_medians["lot_size_sqft"] = float(df["lot_size_sqft"].median())
 df[NUMERIC_FEATURES] = df[NUMERIC_FEATURES].fillna(df[NUMERIC_FEATURES].median())
+
+lot_sqfts_sorted = df["lot_size_sqft"].dropna().sort_values().tolist()
 
 y = df["price_numeric"].dropna()
 df = df.loc[y.index]
@@ -97,6 +100,7 @@ export = {
     "coefficients": model.coef_.tolist(),
     "powers": poly.powers_.tolist(),
     "feature_means": feature_medians,
+    "lot_sqfts_sorted": lot_sqfts_sorted,
     "city_averages": city_averages,
     "r_squared": round(float(ols_result.rsquared), 4),
     "adj_r_squared": round(float(ols_result.rsquared_adj), 4),
