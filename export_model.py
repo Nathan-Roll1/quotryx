@@ -29,11 +29,19 @@ def parse_lot_size(val):
     if pd.isna(val) or not isinstance(val, str):
         return np.nan
     val = val.strip()
+    if val in ("0.00", "0", "Condo", ""):
+        return np.nan
     if "ac" in val.lower():
         num = float(val.lower().replace("ac", "").replace(",", "").strip())
         return num * 43560
     if "sqft" in val.lower():
         return float(val.lower().replace("sqft", "").replace(",", "").strip())
+    if "x" in val.lower():
+        parts = val.lower().split("x")
+        try:
+            return float(parts[0]) * float(parts[1])
+        except (ValueError, IndexError):
+            return np.nan
     return np.nan
 
 
@@ -60,8 +68,8 @@ for col in NUMERIC_FEATURES:
 for col in BINARY_FEATURES:
     df[col] = df[col].fillna(0).astype(int)
 
-feature_means = df[NUMERIC_FEATURES].mean().to_dict()
-df[NUMERIC_FEATURES] = df[NUMERIC_FEATURES].fillna(df[NUMERIC_FEATURES].mean())
+feature_medians = df[NUMERIC_FEATURES].median().to_dict()
+df[NUMERIC_FEATURES] = df[NUMERIC_FEATURES].fillna(df[NUMERIC_FEATURES].median())
 
 y = df["price_numeric"].dropna()
 df = df.loc[y.index]
@@ -87,7 +95,7 @@ export = {
     "intercept": float(model.intercept_),
     "coefficients": model.coef_.tolist(),
     "powers": poly.powers_.tolist(),
-    "feature_means": feature_means,
+    "feature_means": feature_medians,
     "city_averages": city_averages,
     "r_squared": round(float(ols_result.rsquared), 4),
     "adj_r_squared": round(float(ols_result.rsquared_adj), 4),
